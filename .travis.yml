@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t hakosh/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true hakosh/react-test npm test
+
+after_success:
+  - docker build -t hakosh/multi-client ./client
+  - docker build -t hakosh/multi-nginx ./nginx
+  - docker build -t hakosh/multi-server ./server
+  - docker build -t hakosh/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push hakosh/multi-client
+  - docker push hakosh/multi-nginx
+  - docker push hakosh/multi-server
+  - docker push hakosh/multi-worker
